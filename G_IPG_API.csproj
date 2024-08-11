@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="dev\**" />
+    <Compile Remove="NewFolder\**" />
+    <Content Remove="dev\**" />
+    <Content Remove="NewFolder\**" />
+    <EmbeddedResource Remove="dev\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="dev\**" />
+    <None Remove="NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.4" />
+    <PackageReference Include="RestSharp" Version="111.4.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_GlobalJsonStartingDir Remove="dev\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_GlobalJsonStartingDir Remove="NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Common\LoggingConfiguration.cs" />
+    <Compile Remove="Controllers\PayController.cs" />
+  </ItemGroup>
+
+</Project>
