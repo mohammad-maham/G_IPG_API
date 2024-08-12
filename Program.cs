@@ -1,31 +1,10 @@
-//var builder = WebApplication.CreateBuilder(args);
 
-//// Add services to the container.
-
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//var app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
 using G_IPG_API.BusinessLogic;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Accounting;
@@ -72,12 +51,11 @@ public class Program
         });
 
         builder.Services.AddDbContext<GIpgDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("GIPGDbContext"),
+        options.UseNpgsql(builder.Configuration.GetConnectionString("GWalletDbContext"),
 options => options.UseNodaTime()));
 
-
+        builder.Services.AddMvc();
         builder.Services.AddProblemDetails();
-
         builder.Services.AddScoped<IUnitOfWork, GIpgDbContext>();
         builder.Services.AddScoped<ISaman, Saman>();
         builder.Services.AddScoped<IIranKish, IranKish>();
@@ -100,7 +78,6 @@ options => options.UseNodaTime()));
         app.UseAuthorization();
         //app.UseMiddleware<ExceptionMiddleware>();
         app.MapControllers();
-
         app.Run();
     }
 }

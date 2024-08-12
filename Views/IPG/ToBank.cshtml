@@ -1,0 +1,180 @@
+﻿<div class="body">
+
+    <div>
+
+        <div class="col-12">
+            <h6 class="blueHeader">صورتحساب </h6>
+        </div>
+    </div>
+
+
+    <ng-container *ngIf="!tknInf?.result.token; else headerElse">
+        <div class="toBank">
+            <div class="alert alert-warning">
+                <strong class="text-inverse">{{Msg}}</strong><br>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #headerElse>
+        <div class="card">
+
+            <div id="prefactorContainer" class="body">
+                <div class="invoice-header">
+                    <div class="center">
+                        <img src="assets/images/Tci_Logo.png" alt="مخابرات ایران" width="100" height="100" class="center">
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="invoice-from">
+                                    <address class="m-t-5 m-b-5">
+                                        <strong class="text-inverse">مشخصات خریدار</strong><br>
+                                        نام مشتری : {{factorDetail.Header.CutomerName}}<br>
+                                        شناسه مشتری: {{factorDetail.Header.CustomerId}}<br>
+                                        شماره تلفن: {{factorDetail.Header.CustomerTelephone}}<br>
+                                        شماره موبایل: {{factorDetail.Header.CustomerMobile}}<br>
+                                    </address>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="invoice-to">
+                                    <strong class="text-inverse">مشخصات سبد</strong><br>
+                                    <address class="m-t-5 m-b-5">
+                                        شناسه صورتحساب: {{factorDetail.Header.FactorId}} <br>
+                                        عنوان صورتحساب: {{factorDetail.Header.FactorTitle}} <br>
+                                        تاریخ صدور صورتحساب نهایی: {{getPersianDate(factorDetail.Header.CreateDate)}}<br>
+                                    </address>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="invoice-to">
+                                    <strong class="text-inverse">اطلاعات پرداخت</strong><br>
+                                    <address class="m-t-5 m-b-5">
+                                        وضعیت پرداخت:
+                                        <strong [ngStyle]="{'color':confirmInfo.result.responseCode!='00' ? 'Red' : 'Green' }">
+                                            {{ confirmInfo.result.responseCode!="00"? "پرداخت نشده":"پرداخت شده"}} <br>
+                                        </strong>
+                                        کد رهگیری:
+                                        <strong [ngStyle]="{'color':confirmInfo.result.responseCode!='00' ? 'Red' : 'Green' }">
+                                            {{ confirmInfo.result.responseCode!="00"? "-" : confirmInfo.result.retrievalReferenceNumber}} <br>
+                                        </strong>
+                                        تاریخ پرداخت:
+                                        <strong [ngStyle]="{'color':confirmInfo.result.responseCode!='00' ? 'Red' : 'Green' }">
+                                            {{confirmInfo.result.responseCode!="00"? "-" : confirmInfo.result.transactionDateTime.split("T",
+                                            2)[1].substring(0, 8) + " " + getPersianDate(confirmInfo.result.transactionDateTime)}}<br>
+                                        </strong>
+                                    </address>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <legend>آیتم های صورتحساب</legend>
+                <div style=" overflow: auto;">
+                    <fieldset style=" min-width:500px">
+                        <table class="table table-striped table-bordered">
+                            <thead style="background-color: whitesmoke;">
+                                <tr>
+                                    <td style="width: 30px;">ردیف</td>
+                                    <td style="width: 150px;"> عنوان سرویس </td>
+                                    <td style="width: 200px;"> قیمت هر واحد</td>
+                                    <td style="width: 100px;">تعداد</td>
+                                    <td style="width: 90px;"> مبلغ تخفیف</td>
+                                    <td style="width: 90px;"> بدهکاری</td>
+                                    <td style="width: 90px;"> بستانکاری</td>
+                                    <td style="width: 90px;"> توضیح</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let item of factorDetail.Items; index as i;">
+                                    <tr>
+                                        <td>{{i+1}}</td>
+                                        <td>{{item.ItemTitle}}</td>
+                                        <td>{{item.ItemSumPrice<0?(item.ItemUnitPrice*(-1)):item.ItemUnitPrice}} ریال</td>
+                                        <td>{{item.ItemCount}} {{item.ItemUnitType}}</td>
+                                        <td>{{item.ItemDiscount | number}} ریال</td>
+                                        <td>{{item.ItemSumPrice>=0?(item.ItemSumPrice | number)+' ریال':''}} </td>
+                                        <td>{{item.ItemSumPrice<0?((item.ItemSumPrice*(-1)) | number)+' ریال':''}} </td>
+                                        <td>{{item.ItemDesctription | number}}</td>
+                                    </tr>
+
+                                </ng-container>
+                                <tr style="background-color: lightblue;">
+                                    <td colspan="3"><b> جمع کل صورتحساب: {{factorDetail.Footer.FactorSumPrice | number}} ریال</b></td>
+
+                                    <td colspan="5">
+                                        <b>
+                                            جمع کل با محاسبه {{factorDetail.Footer.FactorVAT*100}} درصد مالیات بر ارزش افزوده:
+                                            {{factorDetail.Footer.FactorSumPriceByVAT | number}} ریال
+                                        </b>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                        <hr>
+                        <div class="invoice-from">
+                            <address class="m-t-5 m-b-5">
+                                <strong class="text-inverse">مشخصات فروشنده</strong><br>
+                                نام شرکت : {{factorDetail.Footer.SellerName}}<br>
+                                شماره تماس: {{factorDetail.Footer.SellerTelephone[0]}}<br>
+                                آدرس: {{factorDetail.Footer.SellerAddress[0]}}<br>
+                            </address>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div>
+                <hr>
+                <div *ngIf="tknInf?.type=='saman'">
+                    <div *ngIf="tknInf?.status==1">
+                        <form action="https://sep.shaparak.ir/OnlinePG/OnlinePG" method="post" ngNoForm #FormElement>
+                            <input type="text" name="Token" [value]="tknInf.token" />
+                            <input name="GetMethod" type="text" value="true">
+                            <div *ngIf="tknInf?.result.token">
+
+                                <hr>
+                                <button type="button" class="btn btn-success" (click)="printPreFactor()">چاپ</button>
+                                <button *ngIf="confirmInfo.result.responseCode!='00'" class="btn btn-success payBtn"
+                                        type="submit">
+                                    پرداخت
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div *ngIf="tknInf?.status==-1">
+                        {{tknInf.errorDesc}}
+                    </div>
+                </div>
+                <div *ngIf="tknInf?.type=='irankish'">
+                    <div *ngIf="tknInf?.result.token">
+
+                        <form action="https://ikc.shaparak.ir/iuiv3/IPG/Index" method="post" ngNoForm #FormElement>
+                            <input type="hidden" name="tokenIdentity" [value]="tknInf.result.token" />
+                            <div *ngIf="tknInf?.result.token">
+                                <div>
+                                    <button type="button" class="btn btn-primary col-3" (click)="printPreFactor()">چاپ</button>
+                                    <button *ngIf="confirmInfo.result.responseCode!='00'" class="btn btn-success payBtn col-3"
+                                            type="submit">
+                                        پرداخت
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div *ngIf="!tknInf?.result.token">
+                        {{tknInf.description}}عدم دریافت توکن
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </ng-template>
+
+
+
+
+
+</div>
