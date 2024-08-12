@@ -21,6 +21,15 @@ public class IranKish : IIranKish
 
     public TokenResult GetToken(IPG_IrKish iPGData)
     {
+
+        return new TokenResult
+        {
+            description = "description",
+            responseCode = "00",
+            status = true
+
+        };
+
         iPGData.TransactionType = TransactionType.Purchase;
         iPGData.BillInfo = null;
         iPGData.RsaPublicKey = _configuration.GetSection("Configuration").GetSection("ikcRSAPublicKey").Value;

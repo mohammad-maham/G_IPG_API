@@ -1,0 +1,33 @@
+﻿
+
+
+<form action="@Url.Action("PaymentResult","IPG")" method="post">
+    <label for="token">Token:</label>
+    <input type="text" id="token" name="token" required><br>
+
+    <label for="acceptorId">Acceptor ID:</label>
+    <input type="text" id="acceptorId" name="acceptorId" required><br>
+
+    <label for="maskedPan">Masked PAN:</label>
+    <input type="text" id="maskedPan" name="maskedPan" required><br>
+
+    <label for="paymentId">Payment ID:</label>
+    <input type="text" id="paymentId" name="paymentId" required><br>
+
+    <label for="RequestId">Request ID:</label>
+    <input type="text" id="RequestId" name="RequestId" required><br>
+
+    <label for="responseCode">Response Code:</label>
+    <input type="text" id="responseCode" name="responseCode" required><br>
+
+    <label for="retrievalReferenceNumber">Retrieval Reference Number:</label>
+    <input type="text" id="retrievalReferenceNumber" name="retrievalReferenceNumber" required><br>
+
+    <label for="sha256OfPan">SHA256 of PAN:</label>
+    <input type="text" id="sha256OfPan" name="sha256OfPan" required><br>
+
+    <label for="systemTraceAuditNumber">System Trace Audit Number:</label>
+    <input type="text" id="systemTraceAuditNumber" name="systemTraceAuditNumber" required><br>
+
+    <button type="submit">Submit</button>
+</form>

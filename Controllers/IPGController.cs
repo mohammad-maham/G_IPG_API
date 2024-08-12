@@ -6,6 +6,7 @@ using G_IPG_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace G_IPG_API.Controllers;
 
@@ -16,18 +17,16 @@ namespace G_IPG_API.Controllers;
 public class IPGController : Controller
 {
     private readonly ILogger<IPGController> _logger;
-    private readonly IUnitOfWork _uow;
     private readonly ISaman _saman;
     private readonly IIranKish _iranKish;
     private readonly IConfiguration _configuration;
     private readonly GIpgDbContext _pay;
 
 
-    public IPGController(ILogger<IPGController> logger, IUnitOfWork uow, ISaman saman, IConfiguration configuration,
-        IIranKish iranKish,   GIpgDbContext pay)
+    public IPGController(ILogger<IPGController> logger, ISaman saman, IConfiguration configuration,
+        IIranKish iranKish, GIpgDbContext pay)
     {
         _logger = logger;
-        _uow = uow;
         _saman = saman;
         _iranKish = iranKish;
 
@@ -35,7 +34,7 @@ public class IPGController : Controller
         _pay = pay;
     }
 
-    /// <summary>
+     /// <summary>
     /// کاربر با استفاده از لینک و از طریق انگولار اکشن را صدا میکند
     /// </summary>
     /// <param name="guid"></param>
@@ -46,33 +45,8 @@ public class IPGController : Controller
     {
         try
         {
-            //var x = 0;
-            //var y = 1 / x;
-
 
             var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
-            // for testing
-
-            //TokenResult t = new TokenResult
-            //{
-            //    result = new Result
-            //    {
-            //        billInfo = new Billinfo
-            //        {
-            //            billId = null,
-            //            billPaymentId = null
-            //        },
-            //        token = "38B7B8E50DA32B43B2811DF7155F187B3935",
-            //        expiryTimeStamp = 1645362958,
-            //        initiateTimeStamp = 1645363558,
-            //        transactionType = "Purchase"
-            //    },
-            //    description = null,
-            //    responseCode = "00",
-            //    status = true,
-            //    Type = "irankish",
-            //};
-            //return Ok(t);
 
             if (lr != null)
             {
@@ -120,13 +94,14 @@ public class IPGController : Controller
 
                     var lc = new LinkCall
                     {
-                        RequestId    = lr.RequestId,
+                        Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkcall"),
+                        RequestId = lr.RequestId,
                         InsertDate = DateTime.Now,
                         TokenInfo = JsonConvert.SerializeObject(resp)
                     };
 
                     _pay.LinkCalls.Add(lc);
-                    _uow.SaveChanges();
+                    _pay.SaveChanges();
 
                     if (resp.responseCode == "00")
                     {
@@ -166,7 +141,7 @@ public class IPGController : Controller
 
             lr.Status = 0;
 
-            _uow.SaveChanges();
+            _pay.SaveChanges();
 
             return Ok();
         }
@@ -230,14 +205,15 @@ public class IPGController : Controller
     /// <returns></returns>
     [HttpPost]
     [Route("Pay/GetCodeForLink")]
-    public IActionResult GetCodeForLink(PaymentLinkRequest request)
+    public string GetCodeForLink(PaymentLinkRequest request)
     {
         try
         {
             var lr = new LinkRequest
             {
+                RequestId = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkrequest"),
                 AccLinkReqConf = request.AccLinkReqConf,
-                CallBackType =(short) request.CallBackType,
+                CallBackType = (short)request.CallBackType,
                 ClientMobile = request.ClientMobile,
                 CallbackUrl = request.CallBackURL,
                 ExpireDate = request.ExpDate,
@@ -251,36 +227,36 @@ public class IPGController : Controller
             };
             LinkRequest oldLR = _pay.LinkRequests.FirstOrDefault(x => x.Price == request.Price
             && x.OrderId == request.OrderId
-            && x.CallbackUrl   == request.CallBackURL
+            && x.CallbackUrl == request.CallBackURL
             && x.ClientMobile == request.ClientMobile);
 
             if (oldLR == null)
             {
                 _pay.LinkRequests.Add(lr);
-                _uow.SaveChanges();
+                _pay.SaveChanges();
 
-                var blr = new PaymentLinkRequestResult
-                {
-                    PaymentId = lr.Guid
-                };
+                //var blr = new PaymentLinkRequestResult
+                //{
+                //    PaymentId = lr.Guid
+                //};
 
-                return Ok(blr);
+                //return Ok(blr);
+
+                return lr.Guid;
             }
-            else
-            {
-                oldLR.Status = 1;
-                _uow.SaveChanges();
+            oldLR.Status = 1;
+            _pay.SaveChanges();
 
-                var blr = new PaymentLinkRequestResult
-                {
-                    PaymentId = oldLR.Guid
-                };
-                return Ok(blr);
-            }
+            //var blr = new PaymentLinkRequestResult
+            //{
+            //    PaymentId = oldLR.Guid
+            //};
+            //return Ok(blr);
+            return oldLR.Guid;
         }
         catch (Exception e)
         {
-            return BadRequest(new ApiResponse(500));
+            throw;
         }
     }
 
@@ -311,7 +287,7 @@ public class IPGController : Controller
             };
 
             _pay.Add(bankInq);
-            _uow.SaveChanges();
+            _pay.SaveChanges();
 
             return Ok(ins);
         }
@@ -348,7 +324,7 @@ public class IPGController : Controller
             var vir = _iranKish.ConfirmationPurchase(rv);
 
             brBack.ConfirmInfo = JsonConvert.SerializeObject(vir);
-            _uow.SaveChanges();
+            _pay.SaveChanges();
 
             //تراکنش موفق
 
@@ -374,21 +350,60 @@ public class IPGController : Controller
     /// از طریق این اکشن به سامانه مشاغل ارسال میشود
     /// </summary>
     /// <returns></returns>
-    [HttpPost]
+    [HttpGet]
     [Route("Pay/PaymentResult")]
     public IActionResult PaymentResult()
     {
+        //var guid = GetCodeForLink(new PaymentLinkRequest
+        //{
+        //    Title = "test",
+        //    Price = 1000,
+        //    AccLinkReqConf = "",
+        //    CallBackType = 1,
+        //    ClientMobile = "09",
+        //    CallBackURL = "www.google.com",
+        //    ExpDate = DateTime.Now,
+        //    OrderId = "12",
+
+
+        //});
+
+        //var token = GetToken(guid) is OkObjectResult tokenResult;
+
+
+
+
+        ////if (token is OkObjectResult okResult && okResult.Value is PaymentLinkRequestResult result)
+        ////{
+
+        ////}
+
+
+        //var br = new BackResult
+        //{
+        //    token = Request.Form["token"][0],
+        //    acceptorId = Request.Form["acceptorId"][0],
+        //    maskedPan = Request.Form["maskedPan"][0],
+        //    paymentId = Request.Form["paymentId"][0],
+        //    RequestId = Request.Form["RequestId"][0],
+        //    responseCode = Request.Form["responseCode"][0],
+        //    retrievalReferenceNumber = Request.Form["retrievalReferenceNumber"][0],
+        //    sha256OfPan = Request.Form["sha256OfPan"][0],
+        //    systemTraceAuditNumber = Request.Form["systemTraceAuditNumber"][0]
+        //};
+
+
         var br = new BackResult
         {
-            token = Request.Form["token"][0],
-            acceptorId = Request.Form["acceptorId"][0],
-            maskedPan = Request.Form["maskedPan"][0],
-            paymentId = Request.Form["paymentId"][0],
-            RequestId = Request.Form["RequestId"][0],
-            responseCode = Request.Form["responseCode"][0],
-            retrievalReferenceNumber = Request.Form["retrievalReferenceNumber"][0],
-            sha256OfPan = Request.Form["sha256OfPan"][0],
-            systemTraceAuditNumber = Request.Form["systemTraceAuditNumber"][0]
+            token = "1",
+            acceptorId ="2",
+            maskedPan = "3",
+            paymentId ="4",
+            RequestId =  "1000000000",
+            responseCode ="00",
+            retrievalReferenceNumber = "7",
+            sha256OfPan ="8",
+            systemTraceAuditNumber = "9"
         };
 
         var vr = new VerifyInquiryResult();
@@ -397,24 +412,8 @@ public class IPGController : Controller
         {
             var lr = _pay.LinkRequests.FirstOrDefault(w => w.RequestId.ToString() == br.RequestId);
             ViewBag.GUID = lr.Guid;
-
-            // var lr = _pay.LinkRequests.Where(w => w.ReqId == Int32.Parse(Request.Form["RequestId"][0]) && w.Status == 1).FirstOrDefault();
-            //var lr = _pay.LinkRequests.Where(w => w.ReqId == 229 && w.Status == 1).FirstOrDefault();
-
-            //var br = new BackResult
-            //{
-            //    token = "123456789",
-            //    acceptorId = "123456789",
-            //    maskedPan = "123456789",
-            //    paymentId = "123456789",
-            //    RequestId = "123456789",
-            //    responseCode = "00",
-            //    retrievalReferenceNumber = "123456789",
-            //    sha256OfPan = "123456789",
-            //    systemTraceAuditNumber = "123456789"
-            //};
             var bres = new BankResult();
-            var bankStatus = _pay.BankStatuses.Where(w => w.Id == 10002 && w.Code == int.Parse(br.responseCode)).FirstOrDefault();
+            var bankStatus = _pay.BankStatuses.Where(w => w.BankId == 10002 && w.Code == int.Parse(br.responseCode)).FirstOrDefault();
             vr = new VerifyInquiryResult
             {
                 description = bankStatus.Description,
@@ -426,13 +425,14 @@ public class IPGController : Controller
 
             if (!string.IsNullOrEmpty(br.RequestId))
             {
+                bres.Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_bankresults");
                 bres.RequestId = int.Parse(br.RequestId);
                 bres.BankInfo = JsonConvert.SerializeObject(br);
                 bres.BankId = 10002;//irankish
                 bres.InsertDate = DateTime.Now;
 
                 _pay.BankResults.Add(bres);
-                _uow.SaveChanges();
+                _pay.SaveChanges();
 
 
 
@@ -465,4 +465,11 @@ public class IPGController : Controller
             return BadRequest(vr);
         }
     }
+
+    [HttpGet]
+    public IActionResult ToBank()
+    {
+        return View();
+    }
+
 }

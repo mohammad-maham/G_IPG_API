@@ -29,7 +29,7 @@ public partial class GIpgDbContext : DbContext,IUnitOfWork
     public virtual DbSet<Status> Statuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Host=194.60.231.81:5432;Database=G_IPG_DB;Username=postgres;Password=Maham@7796");
+        => optionsBuilder.UseNpgsql("Host=194.60.231.81:5432;Database=G_IPG_DB;Username=postgres;Password=Maham@7796", x => x.UseNodaTime());
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -93,7 +93,6 @@ public partial class GIpgDbContext : DbContext,IUnitOfWork
             entity.Property(e => e.Guid)
                 .HasMaxLength(100)
                 .HasColumnName("GUID");
-            entity.Property(e => e.InsertDate).HasColumnType("time with time zone");
             entity.Property(e => e.OrderId).HasMaxLength(50);
             entity.Property(e => e.Title).HasMaxLength(100);
         });
