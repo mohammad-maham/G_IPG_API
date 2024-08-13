@@ -8,13 +8,9 @@
 
   <ItemGroup>
     <Compile Remove="dev\**" />
-    <Compile Remove="NewFolder\**" />
     <Content Remove="dev\**" />
-    <Content Remove="NewFolder\**" />
     <EmbeddedResource Remove="dev\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
     <None Remove="dev\**" />
-    <None Remove="NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,10 +29,6 @@
 
   <ItemGroup>
     <_GlobalJsonStartingDir Remove="dev\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_GlobalJsonStartingDir Remove="NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>

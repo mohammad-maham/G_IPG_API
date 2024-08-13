@@ -1,5 +1,6 @@
 
 using G_IPG_API.BusinessLogic;
+using G_IPG_API.BusinessLogic.Interfaces;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,7 @@ options => options.UseNodaTime()));
         builder.Services.AddScoped<IUnitOfWork, GIpgDbContext>();
         builder.Services.AddScoped<ISaman, Saman>();
         builder.Services.AddScoped<IIranKish, IranKish>();
+        builder.Services.AddScoped<IMellat, Mellat>();
 
         builder.Services.AddProblemDetails();
 

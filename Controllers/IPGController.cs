@@ -1,8 +1,10 @@
 ﻿
 using BankPay.Services.Global;
+using G_IPG_API.BusinessLogic.Interfaces;
 using G_IPG_API.Common;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
+using G_IPG_API.Models.Mellat;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -19,12 +21,13 @@ public class IPGController : Controller
     private readonly ILogger<IPGController> _logger;
     private readonly ISaman _saman;
     private readonly IIranKish _iranKish;
+    private readonly IMellat _mellat;
     private readonly IConfiguration _configuration;
     private readonly GIpgDbContext _pay;
 
 
     public IPGController(ILogger<IPGController> logger, ISaman saman, IConfiguration configuration,
-        IIranKish iranKish, GIpgDbContext pay)
+        IIranKish iranKish, GIpgDbContext pay, IMellat mellat)
     {
         _logger = logger;
         _saman = saman;
@@ -32,13 +35,66 @@ public class IPGController : Controller
 
         _configuration = configuration;
         _pay = pay;
+        _mellat = mellat;
     }
 
-     /// <summary>
-    /// کاربر با استفاده از لینک و از طریق انگولار اکشن را صدا میکند
-    /// </summary>
-    /// <param name="guid"></param>
-    /// <returns></returns>
+    [HttpPost]
+    [Route("Pay/GetCodeForLink")]
+    public string GetCodeForLink(PaymentLinkRequest request)
+    {
+        try
+        {
+            var lr = new LinkRequest
+            {
+                RequestId = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkrequest"),
+                AccLinkReqConf = request.AccLinkReqConf,
+                CallBackType = (short)request.CallBackType,
+                ClientMobile = request.ClientMobile,
+                CallbackUrl = request.CallBackURL,
+                ExpireDate = request.ExpDate,
+                OrderId = request.OrderId,
+                Price = request.Price,
+                Title = request.Title,
+                Status = 1,
+                Guid = Helper.IdGenerator(),
+                InsertDate = DateTime.Now,
+                FactorDetail = JsonConvert.SerializeObject(request.FactorData)
+            };
+            LinkRequest oldLR = _pay.LinkRequests.FirstOrDefault(x => x.Price == request.Price
+            && x.OrderId == request.OrderId
+            && x.CallbackUrl == request.CallBackURL
+            && x.ClientMobile == request.ClientMobile);
+
+            if (oldLR == null)
+            {
+                _pay.LinkRequests.Add(lr);
+                _pay.SaveChanges();
+
+                //var blr = new PaymentLinkRequestResult
+                //{
+                //    PaymentId = lr.Guid
+                //};
+
+                //return Ok(blr);
+
+                return lr.Guid;
+            }
+            oldLR.Status = 1;
+            _pay.SaveChanges();
+
+            //var blr = new PaymentLinkRequestResult
+            //{
+            //    PaymentId = oldLR.Guid
+            //};
+            //return Ok(blr);
+            return oldLR.Guid;
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+    }
+
     [HttpGet]
     [Route("Pay/GetToken")]
     public IActionResult GetToken(string guid)
@@ -54,17 +110,47 @@ public class IPGController : Controller
                 {
                     return BadRequest("اطلاعات پرداخت نامعتبر است");
                 }
-                if (_configuration.GetSection("Configuration").GetSection("Saman").Value == "true")
+
+                if (_configuration.GetSection("Configuration:Mellat:Active").Value == "true")
                 {
-                    #region Saman
-                    //fortest
-                    lr = new LinkRequest
+                    #region Mellat
+                    var resp = _mellat.bpPayRequest(new MellatPayment
                     {
-                        Price = 10000,
-                        ClientMobile = "09397371193"
+                        Amount = lr.Price,
+                        OrderId = lr.RequestId,
+                        AdditionalData=lr.FactorDetail
+                    });
+
+                    var lc = new LinkCall
+                    {
+                        Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkcall"),
+                        RequestId = lr.RequestId,
+                        InsertDate = DateTime.Now,
+                        TokenInfo = JsonConvert.SerializeObject(resp)
                     };
 
-                    if (lr != null)
+                    _pay.LinkCalls.Add(lc);
+                    _pay.SaveChanges();
+
+                    if (resp == "0")
+                    {
+                        return Ok(resp);
+                    }
+                    else
+                    {
+                        BankStatus bankStatus = _pay.BankStatuses.FirstOrDefault(x => x.Code == Convert.ToInt32(resp) && x.BankId == 10003);
+                        if (bankStatus != null)
+                            return BadRequest(bankStatus.Description);
+                        else
+                            return BadRequest("ارتباط با بانک برقرار نشد. دقایقی بعد مجدد تلاش کنید");
+                    }
+                    #endregion
+                }
+
+                else if (_configuration.GetSection("Configuration").GetSection("Saman").Value == "true")
+                {
+                    #region Saman
+                                       if (lr != null)
                     {
                         var result = _saman.SendViaToken(new SepTxn
                         {
@@ -128,6 +214,32 @@ public class IPGController : Controller
     }
 
     [HttpGet]
+    [Route("Pay/GetLinkRequestDetail")]
+    public IActionResult GetLinkRequestDetail(string guid)
+    {
+        try
+        {
+            var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
+            return Ok(lr);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiResponse(500));
+        }
+    }
+
+    [HttpGet]
+    public IActionResult ShowBill(string guid)
+    {
+        var detail = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
+
+        ViewBag.TokenInfo = GetToken(guid);
+        ViewBag.confirmInfo = GetBankResult(guid);
+
+        return View(detail);
+    }
+
+    [HttpGet]
     [Route("Pay/DeleteOrder")]
     public IActionResult DeleteOrder(string orderId)
     {
@@ -144,22 +256,6 @@ public class IPGController : Controller
             _pay.SaveChanges();
 
             return Ok();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiResponse(500));
-        }
-    }
-
-    [HttpGet]
-    [Route("Pay/GetLinkRequestDetail")]
-    public IActionResult GetLinkRequestDetail(string guid)
-    {
-        try
-        {
-            var lr = _pay.LinkRequests
-                    .Where(w => w.Guid == guid).FirstOrDefault();
-            return Ok(lr);
         }
         catch (Exception e)
         {
@@ -195,68 +291,6 @@ public class IPGController : Controller
         catch (Exception e)
         {
             return BadRequest(new ApiResponse(500));
-        }
-    }
-
-    /// <summary>
-    /// سامانه مدیریت مشاغل با ارسال پارامترهای پرداخت، کد را برای الصاق به لینک را دریافت میکند
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost]
-    [Route("Pay/GetCodeForLink")]
-    public string GetCodeForLink(PaymentLinkRequest request)
-    {
-        try
-        {
-            var lr = new LinkRequest
-            {
-                RequestId = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkrequest"),
-                AccLinkReqConf = request.AccLinkReqConf,
-                CallBackType = (short)request.CallBackType,
-                ClientMobile = request.ClientMobile,
-                CallbackUrl = request.CallBackURL,
-                ExpireDate = request.ExpDate,
-                OrderId = request.OrderId,
-                Price = request.Price,
-                Title = request.Title,
-                Status = 1,
-                Guid = Helper.IdGenerator(),
-                InsertDate = DateTime.Now,
-                FactorDetail = JsonConvert.SerializeObject(request.FactorData)
-            };
-            LinkRequest oldLR = _pay.LinkRequests.FirstOrDefault(x => x.Price == request.Price
-            && x.OrderId == request.OrderId
-            && x.CallbackUrl == request.CallBackURL
-            && x.ClientMobile == request.ClientMobile);
-
-            if (oldLR == null)
-            {
-                _pay.LinkRequests.Add(lr);
-                _pay.SaveChanges();
-
-                //var blr = new PaymentLinkRequestResult
-                //{
-                //    PaymentId = lr.Guid
-                //};
-
-                //return Ok(blr);
-
-                return lr.Guid;
-            }
-            oldLR.Status = 1;
-            _pay.SaveChanges();
-
-            //var blr = new PaymentLinkRequestResult
-            //{
-            //    PaymentId = oldLR.Guid
-            //};
-            //return Ok(blr);
-            return oldLR.Guid;
-        }
-        catch (Exception e)
-        {
-            throw;
         }
     }
 
@@ -396,13 +430,13 @@ public class IPGController : Controller
         var br = new BackResult
         {
             token = "1",
-            acceptorId ="2",
+            acceptorId = "2",
             maskedPan = "3",
-            paymentId ="4",
-            RequestId =  "1000000000",
-            responseCode ="00",
+            paymentId = "4",
+            RequestId = "1000000000",
+            responseCode = "00",
             retrievalReferenceNumber = "7",
-            sha256OfPan ="8",
+            sha256OfPan = "8",
             systemTraceAuditNumber = "9"
         };
 
@@ -466,10 +500,10 @@ public class IPGController : Controller
         }
     }
 
-    [HttpGet]
-    public IActionResult ToBank()
-    {
-        return View();
-    }
+
+
+    //===============================================
+
+
 
 }
