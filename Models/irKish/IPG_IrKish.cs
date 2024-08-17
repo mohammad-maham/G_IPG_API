@@ -33,25 +33,25 @@ public class ConfirmPaymentModel
 
 public class PaymentLinkRequest
 {
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
-    public int Price { get; set; }
+    public int? Price { get; set; }
 
-    public int CallBackType { get; set; }
+    public int? CallBackType { get; set; }
 
-    public string OrderId { get; set; }
+    public string? OrderId { get; set; }
 
     public DateTime ExpDate { get; set; }
 
-    public string AccLinkReqConf { get; set; }
+    public string? AccLinkReqConf { get; set; }
 
-    //public string Guid { get; set; }
+    public string? Guid { get; set; }
 
-    public string CallBackURL { get; set; }
+    public string? CallBackURL { get; set; }
 
-    public string ClientMobile { get; set; }
+    public string? ClientMobile { get; set; }
 
-    public FactorDataModel FactorData { get; set; }
+     public FactorDataModel? FactorData { get; set; }
 
 }
 
@@ -175,7 +175,7 @@ public class AuthenticationEnvelope
 public class Request
 {
     public string AcceptorId { get; set; }
-    public long amount { get; set; }
+    public long? amount { get; set; }
     public BillInfo BillInfo { get; set; }
     public string CmsPreservationId { get; set; }
     public List<MultiplexParameter> multiplexParameters { get; set; }
@@ -210,7 +210,7 @@ public class IPG_IrKish
     public string AcceptorId { get; set; }//{ get => acceptorId; set => acceptorId = value; }
     public string PassPhrase { get; set; }//{ get => passPhrase; set => passPhrase = value; }
     public string RevertURL { get; set; }//{ get => revertURL; set => revertURL = value; }
-    public long Amount { get; set; }//{ get => amount; set => amount = value; }
+    public long? Amount { get; set; }//{ get => amount; set => amount = value; }
     public string PaymentId { get; set; }//{ get => paymentId; set => paymentId = value; }
     public string CmsPreservationId { get; set; }//{ get => cmsPreservationId; set => cmsPreservationId = value; }
     public string TransactionType { get; set; }//{ get => transactionType; set => transactionType = value; }

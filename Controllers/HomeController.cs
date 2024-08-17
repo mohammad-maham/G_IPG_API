@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using G_IPG_API.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace G_IPG_API.Controllers
 {
@@ -8,6 +9,7 @@ namespace G_IPG_API.Controllers
         [Route("Home/Index")]
         public IActionResult Index()
         {
+
             return View();
         }
     }

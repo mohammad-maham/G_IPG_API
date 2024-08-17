@@ -61,6 +61,7 @@ options => options.UseNodaTime()));
         builder.Services.AddScoped<ISaman, Saman>();
         builder.Services.AddScoped<IIranKish, IranKish>();
         builder.Services.AddScoped<IMellat, Mellat>();
+        builder.Services.AddScoped<IZarrinpal, Zarrinpal>();
 
         builder.Services.AddProblemDetails();
 
