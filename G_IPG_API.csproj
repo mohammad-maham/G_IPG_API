@@ -25,6 +25,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.4" />
     <PackageReference Include="RestSharp" Version="111.4.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+    <PackageReference Include="Zarinpal" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,10 @@
   <ItemGroup>
     <Compile Remove="Common\LoggingConfiguration.cs" />
     <Compile Remove="Controllers\PayController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\Zarrinpal\" />
   </ItemGroup>
 
 </Project>

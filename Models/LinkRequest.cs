@@ -18,7 +18,7 @@ public partial class LinkRequest
 
     public string Title { get; set; } = null!;
 
-    public long Price { get; set; }
+    public long? Price { get; set; }
 
     public short CallBackType { get; set; }
 

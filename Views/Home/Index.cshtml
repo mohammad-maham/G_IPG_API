@@ -1,33 +1,62 @@
-﻿
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Form</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <form id="modelForm">
+        <label for="Title">Title:</label><br>
+        <input type="text" id="Title" name="Title" value="Default Title"><br><br>
 
+        <label for="Price">Price:</label><br>
+        <input type="number" id="Price" name="Price" value="0"><br><br>
 
-<form action="@Url.Action("PaymentResult","IPG")" method="post">
-    <label for="token">Token:</label>
-    <input type="text" id="token" name="token" required><br>
+        <label for="CallBackType">CallBackType:</label><br>
+        <input type="number" id="CallBackType" name="CallBackType" value="0"><br><br>
 
-    <label for="acceptorId">Acceptor ID:</label>
-    <input type="text" id="acceptorId" name="acceptorId" required><br>
+        <label for="OrderId">OrderId:</label><br>
+        <input type="text" id="OrderId" name="OrderId" value="DefaultOrderId"><br><br>
 
-    <label for="maskedPan">Masked PAN:</label>
-    <input type="text" id="maskedPan" name="maskedPan" required><br>
+        <label for="ExpDate">ExpDate:</label><br>
+        <input type="date" id="ExpDate" name="ExpDate" value="2023-12-31"><br><br>
 
-    <label for="paymentId">Payment ID:</label>
-    <input type="text" id="paymentId" name="paymentId" required><br>
+        <label for="AccLinkReqConf">AccLinkReqConf:</label><br>
+        <input type="text" id="AccLinkReqConf" name="AccLinkReqConf" value="DefaultAccLink"><br><br>
 
-    <label for="RequestId">Request ID:</label>
-    <input type="text" id="RequestId" name="RequestId" required><br>
+        <label for="CallBackURL">CallBackURL:</label><br>
+        <input type="url" id="CallBackURL" name="CallBackURL" value="http://example.com"><br><br>
 
-    <label for="responseCode">Response Code:</label>
-    <input type="text" id="responseCode" name="responseCode" required><br>
+        <label for="ClientMobile">ClientMobile:</label><br>
+        <input type="tel" id="ClientMobile" name="ClientMobile" value="1234567890"><br><br>
 
-    <label for="retrievalReferenceNumber">Retrieval Reference Number:</label>
-    <input type="text" id="retrievalReferenceNumber" name="retrievalReferenceNumber" required><br>
+        <input type="submit" value="Submit">
+    </form>
+    <div id="showBill"></div>
+    <script>
+        $(document).ready(function() {
+            $('#modelForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent the default form submission
 
-    <label for="sha256OfPan">SHA256 of PAN:</label>
-    <input type="text" id="sha256OfPan" name="sha256OfPan" required><br>
-
-    <label for="systemTraceAuditNumber">System Trace Audit Number:</label>
-    <input type="text" id="systemTraceAuditNumber" name="systemTraceAuditNumber" required><br>
-
-    <button type="submit">Submit</button>
-</form>
+                var formData = $(this).serialize(); // Serialize the form data
+                debugger
+                $.ajax({
+                    url: '/Pay/ShowBill', // URL to send the data
+                    type: 'POST', // HTTP method
+                    data: formData, // Data to send
+                    success: function(response) {
+                        
+                        $('#showBill').html(response)
+                        $('#modelForm').hide();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Form submission failed', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
