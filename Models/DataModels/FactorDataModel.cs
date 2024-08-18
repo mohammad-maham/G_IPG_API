@@ -40,8 +40,8 @@ public class FactorItem
     public long ItemUnitPrice { get; set; }
     public long ItemCount { get; set; }
     public string ItemUnitType { get; set; }
-    public long ItemDiscount { get; set; }
     public long ItemSumPrice { get; set; }
+    public long ItemDiscount { get; set; }
     public string ItemDesctription { get; set; }
 }
 public class FactorFooter

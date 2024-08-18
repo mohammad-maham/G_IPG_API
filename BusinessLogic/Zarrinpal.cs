@@ -36,7 +36,7 @@ namespace G_IPG_API.BusinessLogic
                     Status = 1,
                     Guid = Helper.IdGenerator(),
                     InsertDate = DateTime.Now,
-                    //FactorDetail = JsonConvert.SerializeObject(request.FactorData)
+                    FactorDetail = JsonConvert.SerializeObject(request.FactorData)
                 };
                 LinkRequest oldLR = _pay.LinkRequests.FirstOrDefault(x => x.Price == request.Price
                 && x.OrderId == request.OrderId
