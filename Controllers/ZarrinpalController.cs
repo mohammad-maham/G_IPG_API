@@ -27,21 +27,24 @@ namespace G_IPG_API.Controllers
 
 
         [HttpPost]
-        [Route("Pay/ShowBill")]
-        public IActionResult ShowBill( PaymentLinkRequest model)
+        [Route("Pay/AddPaymentData")]
+        public string AddPaymentData([FromBody] PaymentLinkRequest model)
         {
             var guid = _zarrinpal.AddPaymentData(model);
-            model.Guid=guid;
+            return guid;
+        }
 
 
-
-
-
+        [Route("Pay/ShowBill")]
+        public IActionResult ShowBill(string guid)
+        {
+            var model = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
             return View(model);
         }
 
-        [HttpGet]
-        public IActionResult Payment(string guid)
+
+        [Route("Pay/Payment")]
+        public IActionResult Payment([FromQuery]string guid)
         {
             try
             {
@@ -65,7 +68,7 @@ namespace G_IPG_API.Controllers
                 if (dataauth != "[]")
                 {
 
-                   var authority = jodata["data"]["authority"].ToString();
+                    var authority = jodata["data"]["authority"].ToString();
 
                     string gatewayUrl = URLs.gateWayUrl + authority;
 
@@ -74,26 +77,29 @@ namespace G_IPG_API.Controllers
                 }
                 else
                 {
-                    return BadRequest("error " + errorscode);
+                    ViewBag.ErrorCode = errorscode;
+                    return View("ShowBill", lr);
                 }
             }
 
             catch (Exception ex)
             {
-                  throw new Exception(ex.Message);
+                throw new Exception(ex.Message);
             }
             return null;
         }
 
-        public IActionResult VerifyPayment()
+        [Route("Pay/VerifyPayment")]
+        public IActionResult VerifyPayment(string guid)
         {
             try
             {
+
                 var authority = "";
                 if (HttpContext.Request.Query["Authority"] != "")
                     authority = HttpContext.Request.Query["Authority"];
 
-                var res = _zarrinpal.VerifyPayment(authority,"1000");
+                var res = _zarrinpal.VerifyPayment(authority, "1000");
 
                 JObject jodata = JObject.Parse(res);
 
@@ -107,9 +113,9 @@ namespace G_IPG_API.Controllers
                 {
                     string refid = jodata["data"]["ref_id"].ToString();
 
-                    ViewBag.code = refid;
-
-                    return View();
+                    var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
+                    ViewBag.confirmInfo = refid;
+                    return View("ShowBill", lr);
                 }
                 else if (errors != "[]")
                 {
