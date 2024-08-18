@@ -7,6 +7,8 @@ using zarinpalasp.netcorerest.Models;
 using G_IPG_API.Models;
 using ZarinPal.Class;
 using G_IPG_API.Interfaces;
+using G_IPG_API.Common;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace G_IPG_API.Controllers
 {
@@ -55,19 +57,11 @@ namespace G_IPG_API.Controllers
                 }
 
                 var res = _zarrinpal.Payment(lr);
-
-                JObject jo = JObject.Parse(res);
-
-                string errorscode = jo["errors"].ToString();
-
                 JObject jodata = JObject.Parse(res);
-
                 string dataauth = jodata["data"].ToString();
-
 
                 if (dataauth != "[]")
                 {
-
                     var authority = jodata["data"]["authority"].ToString();
 
                     string gatewayUrl = URLs.gateWayUrl + authority;
@@ -77,7 +71,8 @@ namespace G_IPG_API.Controllers
                 }
                 else
                 {
-                    ViewBag.ErrorCode = errorscode;
+                    int errCode = (int)jodata["errors"]!["code"]!;
+                    ViewBag.ErrorCode = ZarrinpalErrors.GetZarrinpalError(errCode);
                     return View("ShowBill", lr);
                 }
             }
@@ -94,6 +89,11 @@ namespace G_IPG_API.Controllers
         {
             try
             {
+                var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
+                if (lr == null)
+                {
+                    return BadRequest(404);
+                }
 
                 var authority = "";
                 if (HttpContext.Request.Query["Authority"] != "")
@@ -102,28 +102,21 @@ namespace G_IPG_API.Controllers
                 var res = _zarrinpal.VerifyPayment(authority, "1000");
 
                 JObject jodata = JObject.Parse(res);
-
                 string data = jodata["data"].ToString();
-
-                JObject jo = JObject.Parse(res);
-
-                string errors = jo["errors"].ToString();
+                string errors = jodata["errors"].ToString();
 
                 if (data != "[]")
                 {
                     string refid = jodata["data"]["ref_id"].ToString();
 
-                    var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
-                    ViewBag.confirmInfo = refid;
+                    ViewBag.ConfirmInfo = refid;
                     return View("ShowBill", lr);
                 }
                 else if (errors != "[]")
                 {
-
-                    string errorscode = jo["errors"]["code"].ToString();
-
-                    return BadRequest($"error code {errorscode}");
-
+                    int errCode = (int)jodata["errors"]!["code"]!;
+                    ViewBag.ErrorCode = ZarrinpalErrors.GetZarrinpalError(errCode);
+                    return View("ShowBill", lr);
                 }
 
 
