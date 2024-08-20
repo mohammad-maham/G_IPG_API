@@ -25,8 +25,8 @@ namespace G_IPG_API.BusinessLogic
                 var lr = new LinkRequest
                 {
                     RequestId = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkrequest"),
-                    AccLinkReqConf = request.AccLinkReqConf,
-                    CallBackType = (short)request.CallBackType,
+                    //AccLinkReqConf = request.AccLinkReqConf,
+                    //CallBackType = (short)request.CallBackType,
                     ClientMobile = request.ClientMobile,
                     CallbackUrl = request.CallBackURL,
                     ExpireDate = request.ExpDate,
