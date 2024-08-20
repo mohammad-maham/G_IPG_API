@@ -229,17 +229,6 @@ public class IPGController : Controller
     }
 
     [HttpGet]
-    public IActionResult ShowBill(string guid)
-    {
-        var detail = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
-
-        ViewBag.TokenInfo = GetToken(guid);
-        ViewBag.confirmInfo = GetBankResult(guid);
-
-        return View(detail);
-    }
-
-    [HttpGet]
     [Route("Pay/DeleteOrder")]
     public IActionResult DeleteOrder(string orderId)
     {

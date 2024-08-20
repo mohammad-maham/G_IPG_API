@@ -28,13 +28,28 @@ namespace G_IPG_API.Controllers
 
         [HttpPost]
         [Route("Pay/AddPaymentData")]
-        public string AddPaymentData([FromBody] PaymentLinkRequest model)
+        public IActionResult AddPaymentData([FromBody] PaymentLinkRequest model)
         {
-            var guid = _zarrinpal.AddPaymentData(model);
-            return guid;
+            try
+            {
+                if (model != null)
+                {
+                    var guid = _zarrinpal.AddPaymentData(model);
+                    return Ok(new ApiResponse(data:guid));
+                }
+
+                return BadRequest(new ApiResponse(500));
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
         }
 
 
+        [HttpGet]
         [Route("Pay/ShowBill")]
         public IActionResult ShowBill(string guid)
         {
@@ -43,8 +58,9 @@ namespace G_IPG_API.Controllers
         }
 
 
+        [HttpGet]
         [Route("Pay/Payment")]
-        public IActionResult Payment([FromQuery]string guid)
+        public IActionResult Payment([FromQuery] string guid)
         {
             try
             {
@@ -86,9 +102,9 @@ namespace G_IPG_API.Controllers
             {
                 throw new Exception(ex.Message);
             }
-            return null;
         }
 
+        [HttpGet]
         [Route("Pay/VerifyPayment")]
         public IActionResult VerifyPayment(string guid)
         {

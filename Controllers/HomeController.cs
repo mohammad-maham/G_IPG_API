@@ -45,7 +45,6 @@ namespace G_IPG_API.Controllers
 
                 }
             };
-
             var factorFooter = new FactorFooter
             {
                 FactorSumPrice = factorItems.Sum(x => x.ItemUnitPrice),
@@ -55,7 +54,6 @@ namespace G_IPG_API.Controllers
                 FactorVAT = 1
 
             };
-
             model.FactorData = new FactorDataModel
             {
                 Header = factorHeader,
@@ -64,12 +62,10 @@ namespace G_IPG_API.Controllers
                 
             };
 
-
             string amount = model.Price.ToString();
             string description = model.Title;
             string mobile = model.ClientMobile;
             string callbackurl = model.CallBackURL;
-
 
             var res = new GoldApi("http://localhost:5171/Pay/AddPaymentData", model).Post();
             return res;
