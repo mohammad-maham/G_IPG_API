@@ -3,6 +3,7 @@ using G_IPG_API.BusinessLogic;
 using G_IPG_API.BusinessLogic.Interfaces;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
+using G_IPG_API.Models.Wallet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System;
@@ -52,7 +53,11 @@ public class Program
         });
 
         builder.Services.AddDbContext<GIpgDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("GWalletDbContext"),
+        options.UseNpgsql(builder.Configuration.GetConnectionString("GIPGDbContext"),
+options => options.UseNodaTime()));
+
+        builder.Services.AddDbContext<GWalletDbContext>(options =>
+       options.UseNpgsql(builder.Configuration.GetConnectionString("GWalletDbContext"),
 options => options.UseNodaTime()));
 
         builder.Services.AddMvc();
@@ -62,6 +67,7 @@ options => options.UseNodaTime()));
         builder.Services.AddScoped<IIranKish, IranKish>();
         builder.Services.AddScoped<IMellat, Mellat>();
         builder.Services.AddScoped<IZarrinpal, Zarrinpal>();
+        builder.Services.AddScoped<IIPG, IPG>();
 
         builder.Services.AddProblemDetails();
 
