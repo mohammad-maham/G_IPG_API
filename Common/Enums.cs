@@ -21,7 +21,8 @@ public class Enums
         Sell = 1,
         Buy = 2,
         Windrow = 3,
-        Deposit = 4
+        Deposit = 4,
+        Exchange = 5
     }
     public enum TransactionMode
     {
