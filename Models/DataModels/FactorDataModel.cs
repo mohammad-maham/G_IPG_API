@@ -19,7 +19,7 @@ public class FactorHeader
     public string FactorTitle { get; set; }
     public string FactorDescription { get; set; }
     public string CutomerName { get; set; }
-    public long CustomerId { get; set; }
+    public long? CustomerId { get; set; }
     public string CustomerTelephone { get; set; }
     public string CustomerMobile { get; set; }
     public DateTime CreateDate { get; set; }

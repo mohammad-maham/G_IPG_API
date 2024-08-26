@@ -1,8 +1,7 @@
-﻿using BankPay.Services.Global;
-using G_IPG_API.Common;
+﻿using G_IPG_API.Common;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
-using Newtonsoft.Json;
+using G_IPG_API.Models.Wallet;
 using RestSharp;
 using zarinpalasp.netcorerest.Models;
 
@@ -12,95 +11,57 @@ namespace G_IPG_API.BusinessLogic
     {
         private readonly IConfiguration _configuration;
         private readonly GIpgDbContext _pay;
+        private readonly GWalletDbContext _wallet;
 
-        public Zarrinpal(IConfiguration iConfig, GIpgDbContext pay)
+        public Zarrinpal(IConfiguration iConfig, GIpgDbContext pay, GWalletDbContext wallet)
         {
             _configuration = iConfig;
             _pay = pay;
+            _wallet = wallet;
         }
-        public string AddPaymentData(PaymentLinkRequest request)
-        {
-            try
-            {
-                var lr = new LinkRequest
-                {
-                    RequestId = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkrequest"),
-                    //AccLinkReqConf = request.AccLinkReqConf,
-                    //CallBackType = (short)request.CallBackType,
-                    UserId=request.FactorData.Header.CustomerId,
-                    ClientMobile = request.ClientMobile,
-                    CallbackUrl = request.CallBackURL,
-                    ExpireDate = request.ExpDate,
-                    OrderId = request.OrderId,
-                    Price =(long) request.Price,
-                    Title = request.Title,
-                    Status = 1,
-                    Guid = Helper.IdGenerator(),
-                    InsertDate = DateTime.Now,
-                    FactorDetail = JsonConvert.SerializeObject(request.FactorData)
-                };
-                LinkRequest oldLR = _pay.LinkRequests.FirstOrDefault(x => x.Price == request.Price
-                && x.OrderId == request.OrderId
-                && x.CallbackUrl == request.CallBackURL
-                && x.ClientMobile == request.ClientMobile);
-
-                if (oldLR == null)
-                {
-                    _pay.LinkRequests.Add(lr);
-                    _pay.SaveChanges();
-
-                    return lr.Guid;
-                }
-                oldLR.Status = 1;
-                _pay.SaveChanges();
-                return oldLR.Guid;
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
-        }
+      
 
         public string Payment(LinkRequest model)
         {
 
-            string amount = model.Price.ToString();
+            string amount = model.Price.ToString()!;
             string description = model.Title;
-            string mobile = model.ClientMobile;
+            string mobile = model.ClientMobile!;
+            string requestUrl = _configuration.GetSection("Configuration:Zarrinpal:RequestUrl").Value!;
             string callbackUrl = _configuration.GetSection("Configuration:Zarrinpal:CallbackUrl").Value!;
-            var merchantId = _configuration.GetSection("Configuration:Zarrinpal:Merchant").Value!;
+            string merchantId = _configuration.GetSection("Configuration:Zarrinpal:Merchant").Value!;
 
-            var Parameters = new ZarrinRequestParameters(merchantId, amount, description, callbackUrl, mobile, "");
-            var requestUrl = _configuration.GetSection("Configuration:Zarrinpal:RequestUrl").Value!;
-            var client = new RestClient(requestUrl);
-            var request = new RestRequest("", Method.Post);
+            var @params = new ZarrinRequestParameters(merchantId, amount, description, callbackUrl, mobile, "");
+            var res = new GoldApi(callbackUrl,@params).Post();
 
-            request.AddHeader("accept", "application/json");
-            request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(Parameters);
-
-            var response = client.ExecuteAsync(request);
-            return response.Result.Content;
+            return res;
         }
 
-        public string VerifyPayment(string authority, string amount)
+        public string VerifyPayment(string authority,  LinkRequest model)
         {
-            var merchantId = _configuration.GetSection("Configuration:Zarrinpal:Merchant").Value!;
-            var verifyUrl = _configuration.GetSection("Configuration:Zarrinpal:VerifyUrl").Value!;
-            var client = new RestClient(verifyUrl);
-            var request = new RestRequest("", Method.Post);
+            var tr = _wallet.Transactions.FirstOrDefault(x => x.OrderId == model.OrderId);
+            tr.Status = 1;
+            _wallet.Transactions.Update(tr);
 
-            request.AddHeader("accept", "application/json");
-            request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(new VerifyParameters
-            {
+            var wc = _wallet.WalletCurrencies.FirstOrDefault(x => x.Id == model.WallectCurrencyId);
+            wc.Amount += model.Price;
+            _wallet.WalletCurrencies.Update(wc);
+
+            string merchantId = _configuration.GetSection("Configuration:Zarrinpal:Merchant").Value!;
+            string verifyUrl = _configuration.GetSection("Configuration:Zarrinpal:VerifyUrl").Value!;
+            RestClient client = new RestClient(verifyUrl);
+            RestRequest request = new RestRequest("", Method.Post);
+
+
+            var @params = new VerifyParameters{
                 authority = authority,
-                amount = amount,
+                amount = model.Price.ToString()!,
                 merchant_id = merchantId
-            });
+            };
+            var res = new GoldApi(verifyUrl, @params).Post();
 
-            var response = client.ExecuteAsync(request);
-            return response.Result.Content;
+            return res;
+
         }
     }
 }

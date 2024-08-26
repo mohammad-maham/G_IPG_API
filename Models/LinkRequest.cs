@@ -6,11 +6,12 @@ namespace G_IPG_API.Models;
 
 public partial class LinkRequest
 {
+    public long? UserId { get; set; }
+    public long? WalletId { get; set; }
+    public long? WallectCurrencyId { get; set; }
     public string? Guid { get; set; }
 
     public int RequestId { get; set; }
-
-    public long UserId { get; set; }
 
     public DateTime InsertDate { get; set; }
 
@@ -18,7 +19,7 @@ public partial class LinkRequest
 
     public string Title { get; set; } = null!;
 
-    public long? Price { get; set; }
+    public decimal? Price { get; set; }
 
     public short CallBackType { get; set; }
 

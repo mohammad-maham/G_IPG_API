@@ -1,17 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using RestSharp;
-using System.Text;
-using zarinpalasp.netcorerest.Models;
-using G_IPG_API.Models;
-using ZarinPal.Class;
+﻿using G_IPG_API.Common;
 using G_IPG_API.Interfaces;
+using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
-using G_IPG_API.Models.Wallet.VM;
-using G_IPG_API.Common;
-using G_IPG_API.Models.DataModels;
-using G_IPG_API.BusinessLogic.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace G_IPG_API.Controllers
 {
@@ -34,90 +27,51 @@ namespace G_IPG_API.Controllers
         }
 
 
-        [HttpPost]
-        [Route("Pay/AddPaymentData")]
-        public IActionResult AddPaymentData([FromBody] PaymentLinkRequest model)
-        {
-            try
-            {
-                if (model != null)
-                {
-                    var guid = _zarrinpal.AddPaymentData(model);
-                    return Ok(new ApiResponse(data: guid));
-                }
-
-                return BadRequest(new ApiResponse(500));
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
-        }
-
-        [HttpGet]
-        [Route("Pay/ShowBill")]
-        public IActionResult ShowBill(string guid)
-        {
-            var model = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
-            return View(model);
-        }
-
-
         [HttpGet]
         [Route("Pay/Payment")]
         public IActionResult Payment([FromQuery] string guid)
         {
             try
             {
-                var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
+                var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
+
                 if (lr == null)
-                    return BadRequest(new ApiResponse(701));
+                    return BadRequest(new ApiResponse(706));
 
-                var k = JsonConvert.DeserializeObject<FactorDataModel>(lr.FactorDetail);
-                
-                var wallet = _wallet.Wallets.FirstOrDefault(x => x.UserId == lr.UserId);
-                if (wallet == null)
-                    return BadRequest(new ApiResponse(702));
+                if (lr.ExpireDate < DateTime.Now || lr.Status != 1)
+                    return BadRequest(new ApiResponse(705));
 
-                var wc = _wallet.WalletCurrencies.FirstOrDefault(x=>x.WalletId==wallet.Id && x.CurrencyId==(short)Enums.Currency.Money);
+                var resp = _zarrinpal.Payment(lr);
 
-                var transaction = new Transaction
+                if (string.IsNullOrEmpty(resp))
+                    return BadRequest(new ApiResponse(707));
+
+                var lc = new LinkCall
                 {
-                    Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_wallet, "seq_transactionid"),
-                    Amount = (decimal)lr.Price,
-                    OrderId = lr.RequestId.ToString(),
-                    TransactionDate = DateTime.Now,
-                    TransactionTypeId = (short)Enums.TransactionType.Deposit,
-                    TransactionModeId = (short)Enums.TransactionMode.Online,
-                    Status = 0,
-                    WalletCurrencyId =wc.Id,
-                    WalletId = wallet.Id
+                    Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_pay, "seq_linkcall"),
+                    RequestId = lr.RequestId,
+                    InsertDate = DateTime.Now,
+                    TokenInfo = JsonConvert.SerializeObject(resp)
                 };
 
-                var tr = _wallet.Transactions.Add(transaction);
+                _pay.LinkCalls.Add(lc);
+                _pay.SaveChanges();
 
-                var res = _zarrinpal.Payment(lr);
+                JObject jo = JObject.Parse(resp.ToString());
+                string dataAuth = jo["data"]!.ToString();
 
-                JObject jo = JObject.Parse(res);
-                string dataauth = jo["data"].ToString();
-
-                if (dataauth != "[]")
+                if (dataAuth != "[]")
                 {
-                    _wallet.SaveChanges();
-
-                    var authority = jo["data"]["authority"].ToString();
-                    string gatewayUrl = URLs.gateWayUrl + authority;
-
+                    string authority = jo["data"]["authority"].ToString();
+                    string gatewayUrl = _configuration.GetSection("Configuration:Zarrinpal:GatewayUrl").Value! + authority;
                     return Redirect(gatewayUrl);
-
                 }
                 else
                 {
                     ViewBag.ErrorCode = jo["errors"]["message"];
                     return View("ShowBill", lr);
                 }
+
             }
 
             catch (Exception ex)
@@ -136,33 +90,17 @@ namespace G_IPG_API.Controllers
                 if (HttpContext.Request.Query["Authority"] != "")
                     authority = HttpContext.Request.Query["Authority"];
 
-
                 if (string.IsNullOrEmpty(authority))
                     return BadRequest(new ApiResponse(703));
 
                 var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
 
                 if (lr == null)
-                    return BadRequest(new ApiResponse(703));
+                    return BadRequest(new ApiResponse(706));
 
-                var k = JsonConvert.DeserializeObject<FactorDataModel>(lr.FactorDetail);
-
-                var wallet = _wallet.Wallets.FirstOrDefault(x => x.UserId == lr.UserId);
-                if (wallet == null)
-                    return BadRequest(new ApiResponse(702));
-
-                var tr = _wallet.Transactions.FirstOrDefault(x => x.OrderId == lr.RequestId.ToString());
-                tr.Status = 1;
-                _wallet.Transactions.Update(tr);
-
-                var wc = _wallet.WalletCurrencies.FirstOrDefault(x => x.WalletId == wallet.Id && x.CurrencyId == (short)Enums.Currency.Money);
-                wc.Amount += (decimal)lr.Price;
-                _wallet.WalletCurrencies.Update(wc);
-
-                var res = _zarrinpal.VerifyPayment(authority, lr.Price.ToString());
+                var res = _zarrinpal.VerifyPayment(authority, lr);
 
                 JObject jo = JObject.Parse(res);
-
                 string errors = jo["errors"].ToString();
                 string data = jo["data"].ToString();
 

@@ -1,12 +1,10 @@
 
 using G_IPG_API.BusinessLogic;
-using G_IPG_API.BusinessLogic.Interfaces;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Text.Json.Serialization;
 
 namespace Accounting;
@@ -63,11 +61,10 @@ options => options.UseNodaTime()));
         builder.Services.AddMvc();
         builder.Services.AddProblemDetails();
         builder.Services.AddScoped<IUnitOfWork, GIpgDbContext>();
-        builder.Services.AddScoped<ISaman, Saman>();
-        builder.Services.AddScoped<IIranKish, IranKish>();
-        builder.Services.AddScoped<IMellat, Mellat>();
+        //builder.Services.AddScoped<ISaman, Saman>();
+        //builder.Services.AddScoped<IIranKish, IranKish>();
+        //builder.Services.AddScoped<IMellat, Mellat>();
         builder.Services.AddScoped<IZarrinpal, Zarrinpal>();
-        builder.Services.AddScoped<IIPG, IPG>();
 
         builder.Services.AddProblemDetails();
 

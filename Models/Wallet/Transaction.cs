@@ -8,13 +8,13 @@ public partial class Transaction
 {
     public long Id { get; set; }
 
-    public long WalletId { get; set; }
+    public long? WalletId { get; set; }
 
-    public long WalletCurrencyId { get; set; }
+    public long? WalletCurrencyId { get; set; }
 
-    public short TransactionTypeId { get; set; }
+    public short? TransactionTypeId { get; set; }
 
-    public short TransactionModeId { get; set; }
+    public short? TransactionModeId { get; set; }
 
     public short? Status { get; set; }
 

@@ -1,56 +1,50 @@
-﻿using Newtonsoft.Json;
+﻿using G_APIs.Models;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Configuration;
 using System.Threading.Tasks;
 
-namespace G_APIs.Services
+namespace G_IPG_API.Common;
+
+public class GoldApi
 {
-    public class GoldApi
+    private string ApiPath { get; set; }
+    public Method _Method { get; set; }
+    public object Data { get; set; }
+
+    public GoldApi(string path, object data, Method method = Method.Post)
     {
-        private string ApiPath { get; set; }
-        public string Authorization { get; set; }
-        public string Action { get; set; }
-        public Method _Method { get; set; }
-        public object Data { get; set; }
 
-        public GoldApi( string apiPath, object data, Method method = Method.Post, string authorization = null)
+        ApiPath = path;
+        Data = data;
+        _Method = method;
+    }
+
+    public string Post()
+    {
+        try
         {
-            ApiPath = apiPath;
-            Authorization = authorization;
-            Data = data;
-            _Method = method;
+            RestClient client = new RestClient(ApiPath);
+            RestRequest request = new RestRequest
+            {
+                Method = _Method,
+                Timeout = TimeSpan.FromSeconds(20),
+            };
+
+            request.AddHeader("accept", "application/json");
+            request.AddHeader("content-type", "application/json");
+
+            request.AddJsonBody(Data);
+
+            RestResponse response = client.Execute(request);
+            return response.Content!;
+
         }
-
-        public string Post()
+        catch (Exception ex)
         {
-            try
-            {
-                RestClient client = new RestClient(ApiPath + Action);
-                RestRequest request = new RestRequest
-                {
-                    Method = _Method,
-                    Timeout = TimeSpan.FromSeconds(20),
-                };
-
-                if (Authorization != null)
-                {
-                    request.AddHeader("Authorization", "Bearer " + Authorization);
-                }
-
-                request.AddHeader("content-type", "application/json");
-                request.AddHeader("accept-charset", "utf-8");
-
-                request.AddJsonBody(Data);
-
-                RestResponse response = client.Execute(request);
-                return response.Content;
-
-            }
-            catch (Exception ex)
-            {
-                return ex.InnerException.ToString();
-            }
+            throw;
         }
     }
 }
