@@ -33,8 +33,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="BusinessLogic\Interfaces\IIPG.cs" />
+    <Compile Remove="BusinessLogic\Interfaces\IIranKish.cs" />
+    <Compile Remove="BusinessLogic\Interfaces\IMellat.cs" />
+    <Compile Remove="BusinessLogic\Interfaces\ISaman.cs" />
+    <Compile Remove="BusinessLogic\IPG.cs" />
+    <Compile Remove="BusinessLogic\IranKish.cs" />
+    <Compile Remove="BusinessLogic\Mellat.cs" />
+    <Compile Remove="BusinessLogic\Saman.cs" />
     <Compile Remove="Common\LoggingConfiguration.cs" />
+    <Compile Remove="Controllers\HomeController.cs" />
+    <Compile Remove="Controllers\MellatController.cs" />
     <Compile Remove="Controllers\PayController.cs" />
+    <Compile Remove="Controllers\_IPGController.cs" />
   </ItemGroup>
 
   <ItemGroup>
