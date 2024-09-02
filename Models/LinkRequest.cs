@@ -9,6 +9,7 @@ public partial class LinkRequest
     public long? UserId { get; set; }
     public long? WalletId { get; set; }
     public long? WallectCurrencyId { get; set; }
+        public long? TransactionConfirmId { get; set; }
     public string? Guid { get; set; }
 
     public int RequestId { get; set; }
