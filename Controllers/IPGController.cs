@@ -37,18 +37,18 @@ namespace G_IPG_API.Controllers
                 if (wc == null)
                     return BadRequest(new ApiResponse(702));
 
-                Transaction transaction = new Transaction
-                {
-                    Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_wallet, "seq_transactionid"),
-                    Amount = model.Price,
-                    OrderId = model.OrderId,
-                    TransactionDate = DateTime.Now,
-                    TransactionTypeId = (short)Enums.TransactionType.Deposit,
-                    TransactionModeId = (short)Enums.TransactionMode.Online,
-                    Status = 0,
-                    WalletCurrencyId = wc.Id,
-                    WalletId = model.WalletId
-                };
+                //Transaction transaction = new Transaction
+                //{
+                //    Id = (int)DataBaseHelper.GetPostgreSQLSequenceNextVal(_wallet, "seq_transactionid"),
+                //    Amount = model.Price,
+                //    OrderId = model.OrderId,
+                //    TransactionDate = DateTime.Now,
+                //    TransactionTypeId = (short)Enums.TransactionType.Deposit,
+                //    TransactionModeId = (short)Enums.TransactionMode.Online,
+                //    Status = 0,
+                //    WalletCurrencyId = wc.Id,
+                //    WalletId = model.WalletId
+                //};
 
                 string callbackUrl = _configuration.GetSection("Configuration:Zarrinpal:CallbackUrl").Value!;
                 LinkRequest lr = new LinkRequest
@@ -74,8 +74,8 @@ namespace G_IPG_API.Controllers
 
                 if (oldLR == null)
                 {
-                    _wallet.Transactions.Add(transaction);
-                    _wallet.SaveChanges();
+                    //_wallet.Transactions.Add(transaction);
+                    //_wallet.SaveChanges();
 
                     _pay.LinkRequests.Add(lr);
                     _pay.SaveChanges();

@@ -5,6 +5,7 @@ using G_IPG_API.Models.Wallet;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace G_IPG_API.Controllers
 {
@@ -84,52 +85,70 @@ namespace G_IPG_API.Controllers
         [Route("Pay/VerifyPayment")]
         public IActionResult VerifyPayment(string guid)
         {
-            try
+            using (var context = new GWalletDbContext())
             {
-                var authority = "";
-                if (HttpContext.Request.Query["Authority"] != "")
-                    authority = HttpContext.Request.Query["Authority"];
-
-                if (string.IsNullOrEmpty(authority))
-                    return BadRequest(new ApiResponse(703));
-
-                var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
-
-                if (lr == null)
-                    return BadRequest(new ApiResponse(706));
-
-                var res = _zarrinpal.VerifyPayment(authority, lr);
-
-                JObject jo = JObject.Parse(res);
-                string errors = jo["errors"].ToString();
-                string data = jo["data"].ToString();
-
-                if (data != "[]")
+                using (var transaction = context.Database.BeginTransaction())
                 {
-                    _wallet.SaveChanges();
+                    try
+                    {
+                        var authority = "";
+                        if (HttpContext.Request.Query["Authority"] != "")
+                            authority = HttpContext.Request.Query["Authority"];
+                        else
+                            return BadRequest(new ApiResponse(703));
 
-                    string refid = jo["data"]["ref_id"].ToString();
-                    ViewBag.RefId = refid;
+                        var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
+                        var trc = _wallet.TransactionConfirmations.FirstOrDefault(x => x.Id == lr.TransactionConfirmId);
+                        var wc = _wallet.WalletCurrencies.FirstOrDefault(x => x.Id == lr.WallectCurrencyId);
 
-                    return View("ShowBill", lr);
+                        if (lr == null || trc == null || wc == null)
+                            return BadRequest(new ApiResponse(703));
+
+                        #region Verfy Payment
+                        var res = _zarrinpal.VerifyPayment(authority, lr);
+                        JObject jo = JObject.Parse(res);
+                        string errors = jo["errors"].ToString();
+                        string data = jo["data"].ToString();
+                        #endregion
+
+                        #region Verify Confirmation
+                        trc.ConfirmationDate = DateTime.Now;
+                        trc.ResponceDescription = res;
+                        #endregion
+
+                        if (data != "[]")
+                        {
+                            trc.Status = 1;
+                            wc.Amount += lr.Price;
+
+                            string refid = jo["data"]["ref_id"].ToString();
+                            ViewBag.RefId = refid;
+                        }
+                        else if (errors != "[]")
+                        {
+                            string errorscode = jo["errors"]["code"].ToString();
+                            ViewBag.ErrorCode = errorscode;
+                        }
+
+                        _wallet.WalletCurrencies.Update(wc);
+                        _wallet.TransactionConfirmations.Update(trc);
+                        _wallet.SaveChanges();
+                        transaction.Commit();
+
+                        return View("ShowBill", lr);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+
+                        var st = new StackTrace(ex, true);
+                        var frame = st.GetFrame(0);
+                        var line = frame.GetFileLineNumber();
+                        throw new Exception("Error on line " + line + Environment.NewLine + ex.Message);
+                    }
                 }
-                else if (errors != "[]")
-                {
-
-                    string errorscode = jo["errors"]["code"].ToString();
-                    ViewBag.ErrorCode = errorscode;
-
-                    return View("ShowBill", lr);
-                }
-
-
             }
-            catch (Exception ex)
-            {
-
-                throw new Exception(ex.Message);
-            }
-            return NotFound();
         }
 
     }

@@ -14,7 +14,7 @@ public partial class TransactionConfirmation
 
     public long ConfirmationUserId { get; set; }
 
-    public OffsetTime ConfirmationDate { get; set; }
+    public DateTime ConfirmationDate { get; set; }
 
     public string? RequestDescription { get; set; }
 
