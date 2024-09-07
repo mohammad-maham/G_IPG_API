@@ -140,7 +140,7 @@ namespace G_IPG_API.Controllers
                     }
                     catch (Exception ex)
                     {
-                        transaction.Rollback();
+                        transaction.Dispose();
 
                         var st = new StackTrace(ex, true);
                         var frame = st.GetFrame(0);
