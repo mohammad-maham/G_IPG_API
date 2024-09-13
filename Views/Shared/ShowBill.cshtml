@@ -4,14 +4,14 @@
 @model LinkRequest
 @{
     ViewData["Title"] = "صورتحساب";
-
     var refId = ViewBag.RefId != null ? (string)ViewBag.RefId : string.Empty;
     var errorCode = ViewBag.ErrorCode != null ? (string)ViewBag.ErrorCode : string.Empty;
-
     var bill = JsonConvert.DeserializeObject<FactorDataModel>(Model.FactorDetail);
-
 }
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+<link href="https://my.welscoin.com/Content/bootstrap/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<link href="https://my.welscoin.com/Content/assets/css/elements/alert.css" rel="stylesheet" id="bootstrap-css">
+
 <style>
     .invoice-title h2, .invoice-title h3 {
         display: inline-block;
@@ -63,14 +63,14 @@
 
 <div class="container invoice">
     <div class="row">
-        <div class="col-xs-12">
-            <div class="invoice-title">
+        <div class="col-md-12">
+            <div class="invoice-title clearfix">
                 <h2> صورتحساب @Model.RequestId</h2>
-                <img src="http://194.60.231.81:7122/Content/assets/img/login-image.png" width="64" height="64" class="pull-left" />
+                <img src="https://my.welscoin.com/Content/assets/img/login-image.png" width="64" height="64" style="float:left"  />
             </div>
             <hr>
             <div class="row">
-                <div class="col-xs-6">
+                <div class="col-md-6 col-xs-12">
                     <address>
                         <strong>مشخصات خریدار :</strong><br>
                         نام مشتری : @bill.Header.CutomerName<br>
@@ -79,7 +79,7 @@
                         شماره موبایل: @bill.Header.CustomerMobile<br>
                     </address>
                 </div>
-                <div class="col-xs-6 text-right">
+                <div class="col-md-6 col-xs-12">
                     <address class="m-t-5 m-b-5">
                         <strong class="text-inverse">مشخصات سبد</strong><br>
                         شناسه صورتحساب: @bill.Header.FactorId <br>
@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-xs-6">
+                <div class="col-md-6 col-xs-12">
                     <address class="m-t-5 m-b-5">
                         <strong class="text-inverse">اطلاعات پرداخت</strong><br>
                         وضعیت پرداخت:
@@ -107,7 +107,7 @@
                         </strong>
                     </address>
                 </div>
-                <div class="col-xs-6 text-right">
+                <div class="col-md-6 col-xs-12 ">
                     <address>
                         <strong>  تاریخ:</strong><br>
                         @bill.Header.CreateDate<br><br>
@@ -185,9 +185,9 @@
                 <div>
                     <form action="@Url.Action("Payment","Zarrinpal")" method="get" ngNoForm #FormElement>
                         <input type="hidden" value="@Model.Guid" name="guid" />
-                        <div>
-                            <button type="button" class="btn btn-primary col-3" onclick="window.print()">چاپ</button>
-                            <button class="btn btn-success payBtn col-3" type="submit">
+                        <div class="text-right">
+                            <button type="button" class="btn btn-primary " onclick="window.print()">چاپ</button>
+                            <button class="btn btn-success payBtn " type="submit">
                                 پرداخت
                             </button>
                         </div>
@@ -196,19 +196,28 @@
             }
             else
             {
-                <p>بروز خطا</p>
-                <p class="btn btn-danger">     @errorCode</p>
-                <a class="btn btn-primary" href="http://194.60.231.81:7122/">برگشت به  سایت</a>
-                <button type="button" class="btn btn-primary col-3" (click)="Window.Print()">چاپ</button>
+                <div class="text-right">
+                    <a class="btn btn-success" href="https://my.welscoin.com/">برگشت به  سایت</a>
+                    <button type="button" class="btn btn-primary " (click)="Window.Print()">چاپ</button>
+                </div>
 
+                <div class="alert alert-arrow-right alert-icon-right alert-light-danger mt-4 text-left" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12" y2="16"></line></svg>
+                    <strong>بروز خطا!</strong>  @errorCode
+                </div>
             }
         }
         else
         {
-            <p>تراکنش با موفقیت انجام یافت</p>
-            <p class="btn btn-success"> کد رهگیری   : @refId</p>
-            <a class="btn btn-primary" href="http://194.60.231.81:7122/">برگشت به  سایت</a>
-            <button type="button" class="btn btn-primary col-3" (click)="Window.Print()">چاپ</button>
+            <div class="text-right">
+                <a class="btn btn-primary" href="http://194.60.231.81:7122/">برگشت به  سایت</a>
+                <button type="button" class="btn btn-primary " (click)="Window.Print()">چاپ</button>
+            </div>
+
+            <div class="alert alert-arrow-right alert-icon-right alert-light-success mt-4 text-left" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12" y2="16"></line></svg>
+                تراکنش با موفقیت انجام یافت<strong> کد رهگیری!</strong>  @refId
+            </div>
         }
 
     </div>
