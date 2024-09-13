@@ -1,0 +1,46 @@
+﻿.invoice-title h2, .invoice-title h3 {
+    display: inline-block;
+}
+
+.table > tbody > tr > .no-line {
+    border-top: none;
+}
+
+.table > thead > tr > .no-line {
+    border-bottom: none;
+}
+
+.table > tbody > tr > .thick-line {
+    border-top: 2px solid;
+}
+
+.invoice {
+    direction: rtl;
+    border: 1px solid #dddada;
+    padding-block: 10px;
+    margin: 50px auto;
+    box-shadow: 0 0 10px #d3d3d3;
+    border-radius: 5px;
+    font-family: tahoma;
+    line-height: 24px;
+}
+
+    .invoice address {
+        color: #767070;
+        line-height: 24px;
+    }
+
+        .invoice address strong {
+            color: #000;
+        }
+
+    .invoice table thead td {
+        color: darkgoldenrod;
+        background-color: #f1f1f1;
+        padding: 10px;
+    }
+
+    .invoice tbody td {
+        padding: 10px !important;
+    }
+

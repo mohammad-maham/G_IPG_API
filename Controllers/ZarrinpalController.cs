@@ -37,15 +37,24 @@ namespace G_IPG_API.Controllers
                 var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
 
                 if (lr == null)
-                    return BadRequest(new ApiResponse(706));
-
+                {
+                    ViewBag.ErrorCode = "بروز خطا در ارتباط با بانک ";
+                    return View("ShowBill",new LinkRequest());
+                }
+                   
                 if (lr.ExpireDate < DateTime.Now || lr.Status != 1)
-                    return BadRequest(new ApiResponse(705));
+                {
+                    ViewBag.ErrorCode = "اطلاعات پرداخت نامعتبر است ";
+                    return View("ShowBill",lr);
+                }
 
                 var resp = _zarrinpal.Payment(lr);
 
                 if (string.IsNullOrEmpty(resp))
-                    return BadRequest(new ApiResponse(707));
+                {
+                    ViewBag.ErrorCode = "بروز خطا در ارتباط با بانک ";
+                    return View("ShowBill",lr);
+                }
 
                 var lc = new LinkCall
                 {
