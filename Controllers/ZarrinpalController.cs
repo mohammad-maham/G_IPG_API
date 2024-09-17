@@ -35,25 +35,34 @@ namespace G_IPG_API.Controllers
             try
             {
                 var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault();
+                var trc = _wallet.TransactionConfirmations.FirstOrDefault(x => x.Id == lr.TransactionConfirmId);
 
-                if (lr == null)
+                if (lr == null || lr.ExpireDate < DateTime.Now || lr.Status != 1)
                 {
-                    ViewBag.ErrorCode = "بروز خطا در ارتباط با بانک ";
-                    return View("ShowBill",new LinkRequest());
-                }
-                   
-                if (lr.ExpireDate < DateTime.Now || lr.Status != 1)
-                {
-                    ViewBag.ErrorCode = "اطلاعات پرداخت نامعتبر است ";
+                    var error = new ApiResponse().GetErrorMessage(705);
+                    ViewBag.ErrorCode = error;
+
+                    trc.ConfirmationDate = DateTime.Now;
+                    trc.ResponceDescription = error;
+                    _wallet.TransactionConfirmations.Update(trc);
+                    _wallet.SaveChanges();
+
                     return View("ShowBill",lr);
                 }
-
+                   
                 var resp = _zarrinpal.Payment(lr);
 
                 if (string.IsNullOrEmpty(resp))
                 {
-                    ViewBag.ErrorCode = "بروز خطا در ارتباط با بانک ";
-                    return View("ShowBill",lr);
+                    var error = new ApiResponse().GetErrorMessage(707);
+                    ViewBag.ErrorCode = error;
+
+                    trc.ConfirmationDate = DateTime.Now;
+                    trc.ResponceDescription = error;
+                    _wallet.TransactionConfirmations.Update(trc);
+                    _wallet.SaveChanges();
+
+                    return View("ShowBill", lr);
                 }
 
                 var lc = new LinkCall

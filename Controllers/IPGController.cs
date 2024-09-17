@@ -61,6 +61,7 @@ namespace G_IPG_API.Controllers
                     OrderId = model.OrderId,
                     Price = model.Price,
                     Title = model.Title,
+                    TransactionConfirmId=model.TransactionConfirmId,
                     Status = 1,
                     Guid = Helper.IdGenerator(),
                     InsertDate = DateTime.Now,
