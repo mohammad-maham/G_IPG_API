@@ -48,7 +48,7 @@ namespace G_IPG_API.Controllers
 
                     return View("ShowBill", new LinkRequest());
                 }
-
+                   
                 var resp = _zarrinpal.Payment(lr);
                 if (string.IsNullOrEmpty(resp))
                 {
