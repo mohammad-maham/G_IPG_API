@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -46,6 +46,7 @@
     <Compile Remove="Controllers\MellatController.cs" />
     <Compile Remove="Controllers\PayController.cs" />
     <Compile Remove="Controllers\_IPGController.cs" />
+    <Compile Remove="Models\DataModels\ApiResult.cs" />
   </ItemGroup>
 
   <ItemGroup>

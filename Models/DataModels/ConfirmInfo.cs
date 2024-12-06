@@ -20,7 +20,7 @@ public class ConfirmInfo
 
 public class ConfirmResult
 {
-    public string responseCode { get; set; }
+    public string? responseCode { get; set; }
     public int? systemTraceAuditNumber { get; set; }
     public long? retrievalReferenceNumber { get; set; }
     public DateTime transactionDateTime { get; set; }
@@ -32,17 +32,17 @@ public class ConfirmResult
     public string? billType { get; set; }
     public long? billId { get; set; }
     public long? amount { get; set; }
-    public string revertUri { get; set; }
+    public string? revertUri { get; set; }
     public long? acceptorId { get; set; }
     public int? terminalId { get; set; }
-    public string tokenIdentity { get; set; }
+    public string? tokenIdentity { get; set; }
     public bool? isMultiplex { get; set; }
     public bool? isVerified { get; set; }
     public bool? isReversed { get; set; }
-    public string maskedPan { get; set; }
-    public string description { get; set; }
+    public string? maskedPan { get; set; }
+    public string? description { get; set; }
     public bool? status { get; set; }
-    public string result { get; set; }
+    public string? result { get; set; }
 
 }
 
