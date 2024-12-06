@@ -7,13 +7,16 @@ namespace G_IPG_API.Models;
 
 public partial class GIpgDbContext : DbContext,IUnitOfWork
 {
+    private readonly IConfiguration _config;
     public GIpgDbContext()
     {
+        _config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
     }
 
     public GIpgDbContext(DbContextOptions<GIpgDbContext> options)
         : base(options)
     {
+        _config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
     }
 
     public virtual DbSet<Bank> Banks { get; set; }
@@ -29,7 +32,12 @@ public partial class GIpgDbContext : DbContext,IUnitOfWork
     public virtual DbSet<Status> Statuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Host=194.60.231.81:5432;Database=G_IPG_DB;Username=postgres;Password=Maham@7796", x => x.UseNodaTime());
+    {
+         optionsBuilder.UseNpgsql(_config.GetConnectionString("GIPGDbContext"), x => x.UseNodaTime());
+
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

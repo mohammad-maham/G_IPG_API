@@ -6,15 +6,15 @@ namespace G_IPG_API.Models.Wallet;
 
 public partial class TransactionConfirmation
 {
-    public long Id { get; set; }
+    public long? Id { get; set; }
 
-    public long TransactionId { get; set; }
+    public long? TransactionId { get; set; }
 
-    public short Status { get; set; }
+    public short? Status { get; set; }
 
-    public long ConfirmationUserId { get; set; }
+    public long? ConfirmationUserId { get; set; }
 
-    public DateTime ConfirmationDate { get; set; }
+    public DateTime? ConfirmationDate { get; set; }
 
     public string? RequestDescription { get; set; }
 

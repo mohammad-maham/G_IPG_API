@@ -13,6 +13,11 @@ public class ApiResponse
     public string? Data { get; set; }
     public string? Message { get; set; }
 
+    public string GetErrorMessage(int statusCode)
+    {
+        return GetDefaultMessageForStatusCode(statusCode);
+    }
+
     private string GetDefaultMessageForStatusCode(int statusCode)
     {
         return statusCode switch

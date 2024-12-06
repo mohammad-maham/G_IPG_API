@@ -55,7 +55,7 @@ public class PaymentLinkRequest
     public string? ClientMobile { get; set; }
 
      public FactorDataModel? FactorData { get; set; }
-
+    public long? TransactionConfirmId { get; set; }
 }
 
 public class PaymentLinkRequestResult

@@ -39,4 +39,5 @@ public class Enums
         Money = 1,
         Gold = 2,
     }
+     
 }

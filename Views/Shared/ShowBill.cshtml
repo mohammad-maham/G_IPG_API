@@ -66,7 +66,7 @@
         <div class="col-md-12">
             <div class="invoice-title clearfix">
                 <h2> صورتحساب @Model.RequestId</h2>
-                <img src="https://my.welscoin.com/Content/assets/img/login-image.png" width="64" height="64" style="float:left"  />
+                <img src="https://my.welscoin.com/Content/assets/img/login-image.png" width="64" height="64" style="float:left" />
             </div>
             <hr>
             <div class="row">
@@ -186,6 +186,7 @@
                     <form action="@Url.Action("Payment","Zarrinpal")" method="get" ngNoForm #FormElement>
                         <input type="hidden" value="@Model.Guid" name="guid" />
                         <div class="text-right">
+                            <a class="" href="https://my.welscoin.com/">برگشت به  سایت</a>
                             <button type="button" class="btn btn-primary " onclick="window.print()">چاپ</button>
                             <button class="btn btn-success payBtn " type="submit">
                                 پرداخت
@@ -197,7 +198,7 @@
             else
             {
                 <div class="text-right">
-                    <a class="btn btn-success" href="https://my.welscoin.com/">برگشت به  سایت</a>
+                    <a class="" href="https://my.welscoin.com/">برگشت به  سایت</a>
                     <button type="button" class="btn btn-primary " (click)="Window.Print()">چاپ</button>
                 </div>
 
@@ -210,7 +211,7 @@
         else
         {
             <div class="text-right">
-                <a class="btn btn-primary" href="http://194.60.231.81:7122/">برگشت به  سایت</a>
+                <a class="" href="http://194.60.231.81:7122/">برگشت به  سایت</a>
                 <button type="button" class="btn btn-primary " (click)="Window.Print()">چاپ</button>
             </div>
 
