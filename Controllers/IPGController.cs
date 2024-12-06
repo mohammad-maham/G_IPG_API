@@ -60,7 +60,7 @@ namespace G_IPG_API.Controllers
                     ExpireDate = model.ExpDate,
                     OrderId = model.OrderId,
                     Price = model.Price,
-                    Title = model.Title,
+                    Title = model.Title!,
                     WallectCurrencyId = model.WallectCurrencyId,
                     WalletId    = model.WalletId,
                     TransactionConfirmId = model.TransactionConfirmId,
