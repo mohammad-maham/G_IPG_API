@@ -2,6 +2,7 @@
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
+using GoldHelpers.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -40,7 +41,7 @@ namespace G_IPG_API.Controllers
 
                 if (lr == null || lr.ExpireDate < DateTime.Now || lr.Status != 1)
                 {
-                    string error = new ApiResponse().GetErrorMessage(707);
+                    string? error = new GoldAPIResult(707).Message;
                     ViewBag.ErrorCode = error;
                     trc.ResponceDescription = error;
                     _wallet.TransactionConfirmations.Update(trc);
@@ -48,11 +49,11 @@ namespace G_IPG_API.Controllers
 
                     return View("ShowBill", new LinkRequest());
                 }
-                   
+
                 var resp = _zarrinpal.Payment(lr);
-                if (string.IsNullOrEmpty(resp))
+                if (resp != null)
                 {
-                    string error = new ApiResponse().GetErrorMessage(707);
+                    string? error = new GoldAPIResult(707).Message;
                     ViewBag.ErrorCode = error;
                     trc.ResponceDescription = error;
                     _wallet.TransactionConfirmations.Update(trc);
@@ -109,25 +110,26 @@ namespace G_IPG_API.Controllers
                         if (HttpContext.Request.Query["Authority"] != "")
                             authority = HttpContext.Request.Query["Authority"];
                         else
-                            return BadRequest(new ApiResponse(703));
+                            return BadRequest(new GoldAPIResult(703));
 
                         var lr = _pay.LinkRequests.Where(w => w.Guid == guid).FirstOrDefault()!;
                         var trc = _wallet.TransactionConfirmations.FirstOrDefault(x => x.Id == lr.TransactionConfirmId);
                         var wc = _wallet.WalletCurrencies.FirstOrDefault(x => x.Id == lr.WallectCurrencyId);
 
                         if (lr == null || trc == null || wc == null)
-                            return BadRequest(new ApiResponse(703));
+                            return BadRequest(new GoldAPIResult(703));
 
                         #region Verfy Payment
                         var res = _zarrinpal.VerifyPayment(authority, lr);
-                        JObject jo = JObject.Parse(res);
+                        string jsonData = JsonConvert.SerializeObject(res);
+                        JObject jo = JObject.Parse(jsonData);
                         string errors = jo["errors"].ToString();
                         string data = jo["data"].ToString();
                         #endregion
 
                         #region Verify Confirmation
                         trc.ConfirmationDate = DateTime.Now;
-                        trc.ResponceDescription = res;
+                        trc.ResponceDescription = JsonConvert.SerializeObject(res);
                         #endregion
 
                         if (data != "[]")

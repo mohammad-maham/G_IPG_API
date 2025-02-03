@@ -1,7 +1,8 @@
-﻿using G_IPG_API.Common;
-using G_IPG_API.Interfaces;
+﻿using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
+using GoldHelpers.Helpers;
+using GoldHelpers.Models;
 using RestSharp;
 using zarinpalasp.netcorerest.Models;
 
@@ -19,9 +20,9 @@ namespace G_IPG_API.BusinessLogic
             _pay = pay;
             _wallet = wallet;
         }
-      
 
-        public string Payment(LinkRequest model)
+
+        public GoldAPIResult? Payment(LinkRequest model)
         {
 
             string amount = model.Price.ToString()!;
@@ -32,12 +33,12 @@ namespace G_IPG_API.BusinessLogic
             string merchantId = _configuration.GetSection("Configuration:Zarrinpal:Merchant").Value!;
 
             var @params = new ZarrinRequestParameters(merchantId, amount, description, callbackUrl, mobile, "");
-            var res = new GoldApi(callbackUrl,@params).Post();
+            var res = new GoldAPIResponse(callbackUrl, @params).Post();
 
             return res;
         }
 
-        public string VerifyPayment(string authority,  LinkRequest model)
+        public GoldAPIResult? VerifyPayment(string authority, LinkRequest model)
         {
             var tr = _wallet.Transactions.FirstOrDefault(x => x.OrderId == model.OrderId);
             tr.Status = 1;
@@ -53,12 +54,13 @@ namespace G_IPG_API.BusinessLogic
             RestRequest request = new RestRequest("", Method.Post);
 
 
-            var @params = new VerifyParameters{
+            var @params = new VerifyParameters
+            {
                 authority = authority,
                 amount = model.Price.ToString()!,
                 merchant_id = merchantId
             };
-            var res = new GoldApi(verifyUrl, @params).Post();
+            var res = new GoldAPIResponse(verifyUrl, @params).Post();
 
             return res;
 

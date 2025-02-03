@@ -3,6 +3,7 @@ using G_IPG_API.BusinessLogic;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
+using GoldHelpers.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -82,7 +83,7 @@ options => options.UseNodaTime()));
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-        //app.UseMiddleware<ExceptionMiddleware>();
+        app.UseMiddleware<ExceptionMiddleware>();
         app.MapControllers();
         app.Run();
     }

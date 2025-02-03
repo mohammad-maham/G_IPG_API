@@ -3,6 +3,8 @@ using G_IPG_API.Common;
 using G_IPG_API.Interfaces;
 using G_IPG_API.Models;
 using G_IPG_API.Models.Wallet;
+using GoldHelpers.Helpers;
+using GoldHelpers.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -10,7 +12,6 @@ namespace G_IPG_API.Controllers
 {
     public class IPGController : Controller
     {
-
         private readonly ILogger<IPGController> _logger;
         private readonly IConfiguration _configuration;
         private readonly GIpgDbContext _pay;
@@ -25,17 +26,18 @@ namespace G_IPG_API.Controllers
         }
 
         [HttpPost]
+        [GoldAuthorize]
         [Route("IPG/AddPaymentData")]
         public IActionResult AddPaymentData([FromBody] PaymentLinkRequest model)
         {
             try
             {
                 if (model == null)
-                    return BadRequest(new ApiResponse(500));
+                    return BadRequest(new GoldAPIResult(500));
 
                 var wc = _wallet.WalletCurrencies.FirstOrDefault(x => x.Id == model.WallectCurrencyId);
                 if (wc == null)
-                    return BadRequest(new ApiResponse(702));
+                    return BadRequest(new GoldAPIResult(702));
 
                 //Transaction transaction = new Transaction
                 //{
@@ -83,12 +85,12 @@ namespace G_IPG_API.Controllers
                     _pay.LinkRequests.Add(lr);
                     _pay.SaveChanges();
 
-                    return Ok(new ApiResponse { StatusCode = 200, Data = JsonConvert.SerializeObject(lr.Guid) });
+                    return Ok(new GoldAPIResult { StatusCode = 200, Data = JsonConvert.SerializeObject(lr.Guid) });
                 }
 
                 oldLR.Status = 1;
                 _pay.SaveChanges();
-                return Ok(new ApiResponse { StatusCode = 200, Data = JsonConvert.SerializeObject(oldLR.Guid) });
+                return Ok(new GoldAPIResult { StatusCode = 200, Data = JsonConvert.SerializeObject(oldLR.Guid) });
 
             }
             catch (Exception)
@@ -100,6 +102,7 @@ namespace G_IPG_API.Controllers
         }
 
         [HttpGet]
+        [GoldAuthorize]
         [Route("IPG/ShowBill")]
         public IActionResult ShowBill(string guid)
         {
